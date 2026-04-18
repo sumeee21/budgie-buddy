@@ -40,11 +40,12 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Welcome to Paisa! 🎉");
-        navigate({ to: "/app/onboarding" });
+        window.location.href = "/app/onboarding";
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate({ to: "/app" });
+        toast.success("Welcome back! 👋");
+        window.location.href = "/app";
       }
     } catch (err: any) {
       toast.error(err.message ?? "Something went wrong");
