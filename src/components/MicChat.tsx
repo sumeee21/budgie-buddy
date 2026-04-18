@@ -76,7 +76,7 @@ export function MicChat({ context, onLogged, variant = "full" }: Props) {
         onLogged?.();
 
         // Daily limit nudge
-        const totalToday = context.spent_today + rows.reduce((s, r) => s + r.amount, 0);
+        const totalToday = context.spent_today + rows.reduce((s: number, r: { amount: number }) => s + r.amount, 0);
         if (context.daily_limit && totalToday > context.daily_limit) {
           toast.warning(
             `You're ${formatINR(totalToday - context.daily_limit)} over your daily limit. Tomorrow's a fresh start 💪`
