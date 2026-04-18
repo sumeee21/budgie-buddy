@@ -1,6 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,19 +19,49 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
+  async function waitForSessionUser() {
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session?.user) return session.user;
+
+      await new Promise((resolve) => window.setTimeout(resolve, 150));
+    }
+
+    return null;
+  }
+
+  async function redirectToMainPanel(userId: string) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("total_budget")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const nextPath = !data || Number(data.total_budget) <= 0 ? "/app/onboarding" : "/app";
+    window.location.replace(nextPath);
+  }
+
+  useEffect(() => {
+    if (authLoading || !user) return;
+    void redirectToMainPanel(user.id);
+  }, [authLoading, user]);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -39,16 +70,31 @@ function AuthPage() {
           },
         });
         if (error) throw error;
+        const signedInUser = data.user ?? (await waitForSessionUser());
         toast.success("Welcome to Paisa! 🎉");
-        window.location.href = "/app/onboarding";
+        if (signedInUser) {
+          await redirectToMainPanel(signedInUser.id);
+          return;
+        }
+        window.location.replace("/app/onboarding");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        const signedInUser = data.user ?? (await waitForSessionUser());
         toast.success("Welcome back! 👋");
-        window.location.href = "/app";
+        if (signedInUser) {
+          await redirectToMainPanel(signedInUser.id);
+          return;
+        }
+        window.location.replace("/app");
       }
     } catch (err: any) {
-      toast.error(err.message ?? "Something went wrong");
+      if (err?.message?.includes("User already registered")) {
+        setMode("signin");
+        toast.error("This email already has an account. Please sign in.");
+      } else {
+        toast.error(err.message ?? "Something went wrong");
+      }
     } finally {
       setLoading(false);
     }

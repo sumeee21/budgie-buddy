@@ -19,13 +19,21 @@ export type Transaction = {
 };
 
 export function useFinanceData() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [txns, setTxns] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setProfile(null);
+      setTxns([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
     const [{ data: p }, { data: t }] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
       supabase
@@ -41,8 +49,9 @@ export function useFinanceData() {
   }, [user]);
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    if (authLoading) return;
+    void refresh();
+  }, [authLoading, refresh]);
 
   // Realtime updates
   useEffect(() => {
