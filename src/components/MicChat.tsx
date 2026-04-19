@@ -35,6 +35,7 @@ export function MicChat({ context, onLogged, variant = "full" }: Props) {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const speech = useSpeech();
 
   const { listening, supported, start, stop } = useVoiceInput((text) => {
     setInput(text);
@@ -85,10 +86,12 @@ export function MicChat({ context, onLogged, variant = "full" }: Props) {
         }
       }
 
+      const replyText = data.reply ?? "Got it!";
       setMessages((m) => [
         ...m,
-        { id: crypto.randomUUID(), role: "assistant", text: data.reply ?? "Got it!", meta: extra },
+        { id: crypto.randomUUID(), role: "assistant", text: replyText, meta: extra },
       ]);
+      speech.speak(replyText);
     } catch (e: any) {
       toast.error(e.message ?? "AI hiccup, try again");
       setMessages((m) => [
