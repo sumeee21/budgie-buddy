@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Mic, Send, Loader2 } from "lucide-react";
+import { Mic, Send, Loader2, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
+import { useSpeech } from "@/hooks/useSpeech";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
