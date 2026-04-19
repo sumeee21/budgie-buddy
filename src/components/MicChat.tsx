@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Mic, Send, Loader2 } from "lucide-react";
+import { Mic, Send, Loader2, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
+import { useSpeech } from "@/hooks/useSpeech";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -34,6 +35,7 @@ export function MicChat({ context, onLogged, variant = "full" }: Props) {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const speech = useSpeech();
 
   const { listening, supported, start, stop } = useVoiceInput((text) => {
     setInput(text);
@@ -84,10 +86,12 @@ export function MicChat({ context, onLogged, variant = "full" }: Props) {
         }
       }
 
+      const replyText = data.reply ?? "Got it!";
       setMessages((m) => [
         ...m,
-        { id: crypto.randomUUID(), role: "assistant", text: data.reply ?? "Got it!", meta: extra },
+        { id: crypto.randomUUID(), role: "assistant", text: replyText, meta: extra },
       ]);
+      speech.speak(replyText);
     } catch (e: any) {
       toast.error(e.message ?? "AI hiccup, try again");
       setMessages((m) => [
@@ -188,6 +192,23 @@ export function MicChat({ context, onLogged, variant = "full" }: Props) {
             disabled={busy}
             className="h-12 rounded-full border-border bg-background px-4"
           />
+
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            onClick={() => (speech.speaking ? speech.stop() : speech.toggle())}
+            disabled={!speech.supported}
+            className="h-12 w-12 shrink-0 rounded-full"
+            title={speech.enabled ? "Voice replies on" : "Voice replies off"}
+            aria-label="Toggle voice replies"
+          >
+            {speech.enabled ? (
+              <Volume2 className={cn("h-5 w-5", speech.speaking && "animate-pulse text-primary")} />
+            ) : (
+              <VolumeX className="h-5 w-5 text-muted-foreground" />
+            )}
+          </Button>
 
           <Button
             type="submit"

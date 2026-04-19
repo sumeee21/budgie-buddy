@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppProfileRouteImport } from './routes/app.profile'
 import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
+import { Route as AppHistoryRouteImport } from './routes/app.history'
 import { Route as AppChatRouteImport } from './routes/app.chat'
 import { Route as AppCategoriesRouteImport } from './routes/app.categories'
 
@@ -48,6 +49,11 @@ const AppOnboardingRoute = AppOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AppRoute,
 } as any)
+const AppHistoryRoute = AppHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppChatRoute = AppChatRouteImport.update({
   id: '/chat',
   path: '/chat',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/app/categories': typeof AppCategoriesRoute
   '/app/chat': typeof AppChatRoute
+  '/app/history': typeof AppHistoryRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/profile': typeof AppProfileRoute
   '/app/': typeof AppIndexRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/app/categories': typeof AppCategoriesRoute
   '/app/chat': typeof AppChatRoute
+  '/app/history': typeof AppHistoryRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/profile': typeof AppProfileRoute
   '/app': typeof AppIndexRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/app/categories': typeof AppCategoriesRoute
   '/app/chat': typeof AppChatRoute
+  '/app/history': typeof AppHistoryRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/profile': typeof AppProfileRoute
   '/app/': typeof AppIndexRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app/categories'
     | '/app/chat'
+    | '/app/history'
     | '/app/onboarding'
     | '/app/profile'
     | '/app/'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app/categories'
     | '/app/chat'
+    | '/app/history'
     | '/app/onboarding'
     | '/app/profile'
     | '/app'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app/categories'
     | '/app/chat'
+    | '/app/history'
     | '/app/onboarding'
     | '/app/profile'
     | '/app/'
@@ -171,6 +183,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOnboardingRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/history': {
+      id: '/app/history'
+      path: '/history'
+      fullPath: '/app/history'
+      preLoaderRoute: typeof AppHistoryRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/chat': {
       id: '/app/chat'
       path: '/chat'
@@ -191,6 +210,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppCategoriesRoute: typeof AppCategoriesRoute
   AppChatRoute: typeof AppChatRoute
+  AppHistoryRoute: typeof AppHistoryRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppProfileRoute: typeof AppProfileRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -199,6 +219,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppCategoriesRoute: AppCategoriesRoute,
   AppChatRoute: AppChatRoute,
+  AppHistoryRoute: AppHistoryRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppProfileRoute: AppProfileRoute,
   AppIndexRoute: AppIndexRoute,
@@ -214,12 +235,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
