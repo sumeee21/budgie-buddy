@@ -13,6 +13,12 @@ Your job: parse the user's message and decide one of:
 
 Categories you must use (pick best fit): Food, Transport, Education, Entertainment, Shopping, Health, Bills, Other.
 
+CRITICAL — spending guidance in your "reply":
+- If after this expense the user is OVER their daily limit (spent_today + new amount > daily_limit): clearly tell them to STOP spending today and start saving. Example: "Whoa, you're ₹X over today's limit — please pause spending and save the rest 💪". Be firm but kind.
+- If still UNDER the daily limit: tell them how much they have LEFT for today AND mention the overall remaining monthly balance. Example: "Logged! ₹X left for today, ₹Y left this month 🎉".
+- If no daily limit set, just mention monthly remaining.
+- For "chat" action questions about money, always include both today's and monthly remaining when relevant.
+
 Examples:
 - "I spent 200" → ask: "Sure! What did you spend ₹200 on?"
 - "spent 200 on food" → log: [{amount:200, category:"Food", item:"food"}]
@@ -20,7 +26,7 @@ Examples:
 - "uber 80" → log: [{amount:80, category:"Transport", item:"uber"}]
 - "how much do I have left" → chat: answer using the context provided.
 
-Always call the tool. Keep "reply" under 140 chars, friendly, supportive.`;
+Always call the tool. Keep "reply" under 180 chars, friendly, supportive.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });

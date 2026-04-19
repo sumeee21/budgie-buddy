@@ -1,10 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState, useMemo } from "react";
 import { useFinanceData } from "@/hooks/useFinanceData";
+import { useAuth } from "@/hooks/useAuth";
 import { BottomNav } from "@/components/BottomNav";
 import { MicChat } from "@/components/MicChat";
+import { DateExpensesSheet } from "@/components/DateExpensesSheet";
 import { CATEGORY_META, formatINR, type Category } from "@/lib/finance";
-import { Loader2, TrendingDown, TrendingUp, Sparkles } from "lucide-react";
+import { Loader2, TrendingDown, TrendingUp, Sparkles, CalendarDays } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/")({
   component: Dashboard,
@@ -12,6 +18,25 @@ export const Route = createFileRoute("/app/")({
 
 function Dashboard() {
   const { profile, txns, loading, remaining, spent, spentToday } = useFinanceData();
+  const { user } = useAuth();
+  const [pickedDate, setPickedDate] = useState<Date | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const signupDate = useMemo(() => {
+    const iso = user?.created_at;
+    if (!iso) return new Date();
+    const d = new Date(iso);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [user?.created_at]);
+
+  const today = new Date();
+  const todayLabel = today.toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   if (loading || !profile) {
     return (
@@ -35,9 +60,45 @@ function Dashboard() {
         <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
         <div className="absolute -bottom-20 -left-10 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
         <div className="relative mx-auto max-w-lg">
-          <p className="text-sm opacity-90">
-            Hey {profile.display_name ?? "there"} 👋
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm opacity-90">
+                Hey {profile.display_name ?? "there"} 👋
+              </p>
+              <p className="mt-0.5 text-xs opacity-80">{todayLabel}</p>
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  className="flex h-10 items-center gap-2 rounded-full bg-white/15 px-3 text-xs font-medium backdrop-blur transition hover:bg-white/25"
+                  aria-label="Open calendar"
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  Calendar
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={pickedDate ?? undefined}
+                  onSelect={(d) => {
+                    if (!d) return;
+                    setPickedDate(d);
+                    setSheetOpen(true);
+                  }}
+                  disabled={(date) => {
+                    const d = new Date(date);
+                    d.setHours(0, 0, 0, 0);
+                    const t = new Date();
+                    t.setHours(0, 0, 0, 0);
+                    return d > t || d < signupDate;
+                  }}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
           <p className="mt-6 text-xs uppercase tracking-wider opacity-80">Remaining this month</p>
           <h1 className="mt-1 font-display text-5xl font-bold tracking-tight">
             {formatINR(Math.max(0, remaining))}
@@ -153,6 +214,14 @@ function Dashboard() {
           )}
         </div>
       </div>
+
+      <DateExpensesSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        date={pickedDate}
+        txns={txns}
+        dailyLimit={dailyLimit}
+      />
 
       <BottomNav />
     </div>
