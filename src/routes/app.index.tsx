@@ -60,9 +60,45 @@ function Dashboard() {
         <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
         <div className="absolute -bottom-20 -left-10 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
         <div className="relative mx-auto max-w-lg">
-          <p className="text-sm opacity-90">
-            Hey {profile.display_name ?? "there"} 👋
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm opacity-90">
+                Hey {profile.display_name ?? "there"} 👋
+              </p>
+              <p className="mt-0.5 text-xs opacity-80">{todayLabel}</p>
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  className="flex h-10 items-center gap-2 rounded-full bg-white/15 px-3 text-xs font-medium backdrop-blur transition hover:bg-white/25"
+                  aria-label="Open calendar"
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  Calendar
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={pickedDate ?? undefined}
+                  onSelect={(d) => {
+                    if (!d) return;
+                    setPickedDate(d);
+                    setSheetOpen(true);
+                  }}
+                  disabled={(date) => {
+                    const d = new Date(date);
+                    d.setHours(0, 0, 0, 0);
+                    const t = new Date();
+                    t.setHours(0, 0, 0, 0);
+                    return d > t || d < signupDate;
+                  }}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
           <p className="mt-6 text-xs uppercase tracking-wider opacity-80">Remaining this month</p>
           <h1 className="mt-1 font-display text-5xl font-bold tracking-tight">
             {formatINR(Math.max(0, remaining))}
