@@ -215,6 +215,14 @@ function Dashboard() {
         </div>
       </div>
 
+      <DateExpensesSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        date={pickedDate}
+        txns={txns}
+        dailyLimit={dailyLimit}
+      />
+
       <BottomNav />
     </div>
   );
