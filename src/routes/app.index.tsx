@@ -1,10 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState, useMemo } from "react";
 import { useFinanceData } from "@/hooks/useFinanceData";
+import { useAuth } from "@/hooks/useAuth";
 import { BottomNav } from "@/components/BottomNav";
 import { MicChat } from "@/components/MicChat";
+import { DateExpensesSheet } from "@/components/DateExpensesSheet";
 import { CATEGORY_META, formatINR, type Category } from "@/lib/finance";
-import { Loader2, TrendingDown, TrendingUp, Sparkles } from "lucide-react";
+import { Loader2, TrendingDown, TrendingUp, Sparkles, CalendarDays } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/")({
   component: Dashboard,
@@ -12,6 +18,25 @@ export const Route = createFileRoute("/app/")({
 
 function Dashboard() {
   const { profile, txns, loading, remaining, spent, spentToday } = useFinanceData();
+  const { user } = useAuth();
+  const [pickedDate, setPickedDate] = useState<Date | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const signupDate = useMemo(() => {
+    const iso = user?.created_at;
+    if (!iso) return new Date();
+    const d = new Date(iso);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [user?.created_at]);
+
+  const today = new Date();
+  const todayLabel = today.toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   if (loading || !profile) {
     return (
