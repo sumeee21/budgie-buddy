@@ -194,6 +194,23 @@ export function MicChat({ context, onLogged, variant = "full" }: Props) {
           />
 
           <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            onClick={() => (speech.speaking ? speech.stop() : speech.toggle())}
+            disabled={!speech.supported}
+            className="h-12 w-12 shrink-0 rounded-full"
+            title={speech.enabled ? "Voice replies on" : "Voice replies off"}
+            aria-label="Toggle voice replies"
+          >
+            {speech.enabled ? (
+              <Volume2 className={cn("h-5 w-5", speech.speaking && "animate-pulse text-primary")} />
+            ) : (
+              <VolumeX className="h-5 w-5 text-muted-foreground" />
+            )}
+          </Button>
+
+          <Button
             type="submit"
             size="icon"
             disabled={busy || !input.trim()}
