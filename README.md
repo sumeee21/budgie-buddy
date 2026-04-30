@@ -38,19 +38,4 @@ Budgie Buddy is a **voice-first AI-powered personal finance companion** designed
 - **AI/NLP:** OpenAI API  
 - **Voice Input:** Speech-to-Text API  
 
----
 
-## ⚙️ Installation & Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/your-username/budgie-buddy.git
-
-# Navigate to project folder
-cd budgie-buddy
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
