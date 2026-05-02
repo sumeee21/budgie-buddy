@@ -1,12 +1,12 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, MessageCircle, PieChart, User, Clock } from "lucide-react";
+import { Home, MessageCircle, BarChart3, User, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { to: "/app", label: "Home", icon: Home },
   { to: "/app/chat", label: "Chat", icon: MessageCircle },
   { to: "/app/history", label: "History", icon: Clock },
-  { to: "/app/categories", label: "Stats", icon: PieChart },
+  { to: "/app/insights", label: "Insights", icon: BarChart3 },
   { to: "/app/profile", label: "You", icon: User },
 ];
 
