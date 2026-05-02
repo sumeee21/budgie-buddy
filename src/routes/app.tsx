@@ -26,7 +26,7 @@ function AppLayout() {
 
       const { data } = await supabase
         .from("profiles")
-        .select("id, total_budget")
+        .select("id, total_budget, mode")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -45,7 +45,10 @@ function AppLayout() {
         return;
       }
 
-      setNeedsBudget(Number(data.total_budget) <= 0);
+      // Onboarding only required if user hasn't picked a mode yet (legacy users had budget mode + budget=0)
+      const mode = (data as any).mode ?? "budget";
+      const needs = mode === "budget" && Number(data.total_budget) <= 0;
+      setNeedsBudget(needs);
       setProfileChecked(true);
     }
 
