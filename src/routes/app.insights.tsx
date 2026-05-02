@@ -272,28 +272,29 @@ function InsightsPage() {
             <div className="mt-4 h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={result.series} margin={{ top: 10, right: 6, left: -16, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                   <XAxis
                     dataKey="date"
-                    tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                    tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
                     interval="preserveStartEnd"
                     minTickGap={20}
                     axisLine={false}
                     tickLine={false}
                   />
                   <YAxis
-                    tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                    tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
                     axisLine={false}
                     tickLine={false}
                     tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))}
                   />
                   <Tooltip
-                    cursor={{ fill: "oklch(from var(--primary) l c h / 0.08)" }}
+                    cursor={{ fill: "var(--muted)" }}
                     contentStyle={{
-                      background: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
+                      background: "var(--card)",
+                      border: "1px solid var(--border)",
                       borderRadius: 12,
                       fontSize: 12,
+                      color: "var(--foreground)",
                     }}
                     formatter={(v: number) => [formatINR(v), "Spent"]}
                   />
@@ -326,7 +327,7 @@ function InsightsPage() {
                       nameKey="name"
                       innerRadius={36}
                       outerRadius={70}
-                      stroke="hsl(var(--card))"
+                      stroke="var(--card)"
                       strokeWidth={2}
                     >
                       {result.categories.map((c) => {
@@ -336,10 +337,11 @@ function InsightsPage() {
                     </Pie>
                     <Tooltip
                       contentStyle={{
-                        background: "hsl(var(--card))",
-                        border: "1px solid hsl(var(--border))",
+                        background: "var(--card)",
+                        border: "1px solid var(--border)",
                         borderRadius: 12,
                         fontSize: 12,
+                        color: "var(--foreground)",
                       }}
                       formatter={(v: number, n: string) => [formatINR(v), n]}
                     />
