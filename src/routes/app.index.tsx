@@ -1,12 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useFinanceData } from "@/hooks/useFinanceData";
 import { useAuth } from "@/hooks/useAuth";
 import { BottomNav } from "@/components/BottomNav";
 import { MicChat } from "@/components/MicChat";
 import { DateExpensesSheet } from "@/components/DateExpensesSheet";
-import { CATEGORY_META, formatINR, type Category } from "@/lib/finance";
-import { Loader2, TrendingDown, TrendingUp, Sparkles, CalendarDays } from "lucide-react";
+import { CATEGORY_META, formatINR, localDateKey, type Category } from "@/lib/finance";
+import { Loader2, TrendingDown, TrendingUp, Sparkles, CalendarDays, BarChart3, ArrowRight } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -52,6 +52,17 @@ function Dashboard() {
   const dailyPct = dailyLimit ? Math.min(100, (spentToday / dailyLimit) * 100) : 0;
   const overDaily = dailyLimit ? spentToday > dailyLimit : false;
   const recent = txns.slice(0, 5);
+  const isTracking = profile.mode === "tracking";
+  const txnContext = useMemo(
+    () =>
+      txns.slice(0, 200).map((t) => ({
+        date: localDateKey(t.created_at),
+        amount: Number(t.amount),
+        category: t.category,
+        item: t.item,
+      })),
+    [txns]
+  );
 
   return (
     <div className="min-h-screen pb-32">
@@ -99,23 +110,62 @@ function Dashboard() {
               </PopoverContent>
             </Popover>
           </div>
-          <p className="mt-6 text-xs uppercase tracking-wider opacity-80">Remaining this month</p>
-          <h1 className="mt-1 font-display text-5xl font-bold tracking-tight">
-            {formatINR(Math.max(0, remaining))}
-          </h1>
-          <div className="mt-4 space-y-1.5">
-            <Progress value={pctUsed} className="h-1.5 bg-white/20 [&>*]:bg-white" />
-            <div className="flex justify-between text-xs opacity-90">
-              <span>Spent {formatINR(spent)}</span>
-              <span>Budget {formatINR(total)}</span>
-            </div>
-          </div>
+          {isTracking ? (
+            <>
+              <p className="mt-6 text-xs uppercase tracking-wider opacity-80">Spent this month</p>
+              <h1 className="mt-1 font-display text-5xl font-bold tracking-tight">
+                {formatINR(spent)}
+              </h1>
+              <p className="mt-2 text-xs opacity-90">
+                {txns.length} {txns.length === 1 ? "expense" : "expenses"} logged · tracking mode
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="mt-6 text-xs uppercase tracking-wider opacity-80">Remaining this month</p>
+              <h1 className="mt-1 font-display text-5xl font-bold tracking-tight">
+                {formatINR(Math.max(0, remaining))}
+              </h1>
+              <div className="mt-4 space-y-1.5">
+                <Progress value={pctUsed} className="h-1.5 bg-white/20 [&>*]:bg-white" />
+                <div className="flex justify-between text-xs opacity-90">
+                  <span>Spent {formatINR(spent)}</span>
+                  <span>Budget {formatINR(total)}</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       <div className="mx-auto -mt-12 max-w-lg space-y-4 px-4">
-        {/* Daily limit card */}
-        {dailyLimit && (
+        {/* Tracking mode: today's spend simple counter + insights link */}
+        {isTracking && (
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Today's spend
+                </p>
+                <p className="mt-1 font-display text-2xl font-bold">{formatINR(spentToday)}</p>
+              </div>
+              <Link
+                to="/app/insights"
+                className="flex items-center gap-1.5 rounded-full bg-gradient-blaze px-3.5 py-2 text-xs font-medium text-primary-foreground shadow-glow transition hover:opacity-95"
+              >
+                <BarChart3 className="h-3.5 w-3.5" />
+                Insights
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              No budget — just tracking. Open Insights to analyze your spending.
+            </p>
+          </div>
+        )}
+
+        {/* Daily limit card (budget mode only) */}
+        {!isTracking && dailyLimit && (
           <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
             <div className="flex items-center justify-between">
               <div>
@@ -165,7 +215,13 @@ function Dashboard() {
           <div className="mt-3">
             <MicChat
               variant="compact"
-              context={{ remaining, daily_limit: dailyLimit, spent_today: spentToday }}
+              context={{
+                remaining,
+                daily_limit: dailyLimit,
+                spent_today: spentToday,
+                mode: profile.mode,
+                transactions: txnContext,
+              }}
             />
           </div>
         </div>
