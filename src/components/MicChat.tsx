@@ -18,7 +18,13 @@ export type ChatMsg = {
 };
 
 type Props = {
-  context: { remaining: number; daily_limit: number | null; spent_today: number };
+  context: {
+    remaining: number;
+    daily_limit: number | null;
+    spent_today: number;
+    mode?: "budget" | "tracking";
+    transactions?: { date: string; amount: number; category: string; item: string | null }[];
+  };
   onLogged?: () => void;
   variant?: "compact" | "full";
 };
@@ -77,12 +83,14 @@ export function MicChat({ context, onLogged, variant = "full" }: Props) {
         extra = { logged: data.expenses };
         onLogged?.();
 
-        // Daily limit nudge
-        const totalToday = context.spent_today + rows.reduce((s: number, r: { amount: number }) => s + r.amount, 0);
-        if (context.daily_limit && totalToday > context.daily_limit) {
-          toast.warning(
-            `You're ${formatINR(totalToday - context.daily_limit)} over your daily limit. Tomorrow's a fresh start 💪`
-          );
+        // Daily limit nudge (budget mode only)
+        if (context.mode !== "tracking") {
+          const totalToday = context.spent_today + rows.reduce((s: number, r: { amount: number }) => s + r.amount, 0);
+          if (context.daily_limit && totalToday > context.daily_limit) {
+            toast.warning(
+              `You're ${formatINR(totalToday - context.daily_limit)} over your daily limit. Tomorrow's a fresh start 💪`
+            );
+          }
         }
       }
 

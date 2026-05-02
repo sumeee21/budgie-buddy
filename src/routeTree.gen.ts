@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppProfileRouteImport } from './routes/app.profile'
 import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
+import { Route as AppInsightsRouteImport } from './routes/app.insights'
 import { Route as AppHistoryRouteImport } from './routes/app.history'
 import { Route as AppChatRouteImport } from './routes/app.chat'
 import { Route as AppCategoriesRouteImport } from './routes/app.categories'
@@ -49,6 +50,11 @@ const AppOnboardingRoute = AppOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInsightsRoute = AppInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppHistoryRoute = AppHistoryRouteImport.update({
   id: '/history',
   path: '/history',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/app/categories': typeof AppCategoriesRoute
   '/app/chat': typeof AppChatRoute
   '/app/history': typeof AppHistoryRoute
+  '/app/insights': typeof AppInsightsRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/profile': typeof AppProfileRoute
   '/app/': typeof AppIndexRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/app/categories': typeof AppCategoriesRoute
   '/app/chat': typeof AppChatRoute
   '/app/history': typeof AppHistoryRoute
+  '/app/insights': typeof AppInsightsRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/profile': typeof AppProfileRoute
   '/app': typeof AppIndexRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/app/categories': typeof AppCategoriesRoute
   '/app/chat': typeof AppChatRoute
   '/app/history': typeof AppHistoryRoute
+  '/app/insights': typeof AppInsightsRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/profile': typeof AppProfileRoute
   '/app/': typeof AppIndexRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/app/categories'
     | '/app/chat'
     | '/app/history'
+    | '/app/insights'
     | '/app/onboarding'
     | '/app/profile'
     | '/app/'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/app/categories'
     | '/app/chat'
     | '/app/history'
+    | '/app/insights'
     | '/app/onboarding'
     | '/app/profile'
     | '/app'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/app/categories'
     | '/app/chat'
     | '/app/history'
+    | '/app/insights'
     | '/app/onboarding'
     | '/app/profile'
     | '/app/'
@@ -183,6 +195,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOnboardingRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/insights': {
+      id: '/app/insights'
+      path: '/insights'
+      fullPath: '/app/insights'
+      preLoaderRoute: typeof AppInsightsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/history': {
       id: '/app/history'
       path: '/history'
@@ -211,6 +230,7 @@ interface AppRouteChildren {
   AppCategoriesRoute: typeof AppCategoriesRoute
   AppChatRoute: typeof AppChatRoute
   AppHistoryRoute: typeof AppHistoryRoute
+  AppInsightsRoute: typeof AppInsightsRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppProfileRoute: typeof AppProfileRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -220,6 +240,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCategoriesRoute: AppCategoriesRoute,
   AppChatRoute: AppChatRoute,
   AppHistoryRoute: AppHistoryRoute,
+  AppInsightsRoute: AppInsightsRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppProfileRoute: AppProfileRoute,
   AppIndexRoute: AppIndexRoute,

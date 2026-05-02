@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LogOut, Loader2, Wallet } from "lucide-react";
+import { LogOut, Loader2, Wallet, LineChart } from "lucide-react";
 import { formatINR } from "@/lib/finance";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/profile")({
   component: ProfilePage,
@@ -22,6 +23,7 @@ function ProfilePage() {
   const [budget, setBudget] = useState("");
   const [daily, setDaily] = useState("");
   const [saving, setSaving] = useState(false);
+  const [switching, setSwitching] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -29,6 +31,20 @@ function ProfilePage() {
       setDaily(profile.daily_limit ? String(profile.daily_limit) : "");
     }
   }, [profile]);
+
+  async function switchMode(target: "budget" | "tracking") {
+    if (!user || !profile || profile.mode === target) return;
+    setSwitching(true);
+    const updates =
+      target === "tracking"
+        ? { mode: "tracking", total_budget: 0, daily_limit: null }
+        : { mode: "budget" };
+    const { error } = await supabase.from("profiles").update(updates).eq("user_id", user.id);
+    setSwitching(false);
+    if (error) return toast.error(error.message);
+    toast.success(target === "tracking" ? "Tracking mode on 📊" : "Budget mode on 💰");
+    refresh();
+  }
 
   async function save() {
     if (!user) return;
@@ -75,6 +91,51 @@ function ProfilePage() {
           </div>
         </div>
 
+        {/* Mode switcher */}
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
+          <h2 className="font-display text-lg font-semibold">Mode</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Switch how Paisa tracks your money. You can change anytime.
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              disabled={switching}
+              onClick={() => switchMode("budget")}
+              className={cn(
+                "flex flex-col items-start gap-1.5 rounded-xl border-2 p-3 text-left transition",
+                profile?.mode === "budget"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/40"
+              )}
+            >
+              <Wallet className="h-4 w-4 text-primary" />
+              <p className="text-sm font-semibold">Budget</p>
+              <p className="text-[10px] text-muted-foreground">
+                Track savings vs. monthly budget
+              </p>
+            </button>
+            <button
+              type="button"
+              disabled={switching}
+              onClick={() => switchMode("tracking")}
+              className={cn(
+                "flex flex-col items-start gap-1.5 rounded-xl border-2 p-3 text-left transition",
+                profile?.mode === "tracking"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/40"
+              )}
+            >
+              <LineChart className="h-4 w-4 text-primary" />
+              <p className="text-sm font-semibold">Tracking</p>
+              <p className="text-[10px] text-muted-foreground">
+                No budget — just analyze spending
+              </p>
+            </button>
+          </div>
+        </div>
+
+        {profile?.mode === "budget" && (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
           <h2 className="font-display text-lg font-semibold">Budget settings</h2>
           <div className="mt-4 space-y-3">
@@ -97,6 +158,7 @@ function ProfilePage() {
             </Button>
           </div>
         </div>
+        )}
 
         <button
           onClick={signOut}

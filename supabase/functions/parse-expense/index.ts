@@ -1,10 +1,10 @@
-// Edge function: parse student expense input via Lovable AI
+// Edge function: parse expense input via Lovable AI (budget + tracking modes)
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `You are a friendly, supportive AI finance companion for college students. You help them log expenses naturally and stay on budget. Currency is INR (₹). Be warm, encouraging, never judgmental. Use light emojis sparingly.
+const BUDGET_PROMPT = `You are a friendly, supportive AI finance companion for college students in BUDGET MODE. You help them log expenses naturally and stay on budget. Currency is INR (₹). Be warm, encouraging, never judgmental. Use light emojis sparingly.
 
 Your job: parse the user's message and decide one of:
 1. "log" — there is enough info to log one or more expenses (amount + what it was spent on).
@@ -19,14 +19,50 @@ CRITICAL — spending guidance in your "reply":
 - If no daily limit set, just mention monthly remaining.
 - For "chat" action questions about money, always include both today's and monthly remaining when relevant.
 
-Examples:
-- "I spent 200" → ask: "Sure! What did you spend ₹200 on?"
-- "spent 200 on food" → log: [{amount:200, category:"Food", item:"food"}]
-- "100 on biryani and 100 on hackathon" → log: [{amount:100, category:"Food", item:"biryani"},{amount:100, category:"Education", item:"hackathon"}]
-- "uber 80" → log: [{amount:80, category:"Transport", item:"uber"}]
-- "how much do I have left" → chat: answer using the context provided.
+If the user asks about spending in a date range (e.g. "how much did I spend from April 18 to 25"), use the transactions list provided in context to compute and answer with exact totals.
 
-Always call the tool. Keep "reply" under 180 chars, friendly, supportive.`;
+Always call the tool. Keep "reply" under 200 chars, friendly, supportive.`;
+
+const TRACKING_PROMPT = `You are a friendly AI expense tracker in TRACKING MODE (no budget). The user just wants to record spending and analyze it. Currency is INR (₹). Be warm and concise. Use light emojis sparingly.
+
+Your job: parse the user's message and decide one of:
+1. "log" — there is enough info to log one or more expenses (amount + what it was spent on).
+2. "ask" — amount is given but the user did NOT say what it was for, ask a short clarifying question.
+3. "chat" — greeting or analytical question (e.g. date-range totals, "how much did I spend this week").
+
+Categories: Food, Transport, Education, Entertainment, Shopping, Health, Bills, Other.
+
+CRITICAL — DO NOT mention budget, remaining balance, daily limits, or saving advice. The user has no budget. Just confirm what was logged with the total spent today, e.g. "Logged ₹100 for biryani 🍔. You've spent ₹350 today.".
+
+For date-range questions (e.g. "how much did I spend from April 18 to April 25", "spending between 1 May and 10 May", "this week's total"), use the transactions list in context to compute an EXACT total. Reply like: "You spent ₹3,450 between 18 Apr and 25 Apr across 12 expenses. Top category: Food (₹1,200). Highest day: 22 Apr (₹820)."
+
+Always call the tool. Keep "reply" under 240 chars.`;
+
+function buildContext(ctx: any): { mode: "budget" | "tracking"; text: string } {
+  const mode: "budget" | "tracking" = ctx?.mode === "tracking" ? "tracking" : "budget";
+  const today = new Date().toISOString().slice(0, 10);
+  const txns = Array.isArray(ctx?.transactions) ? ctx.transactions.slice(0, 200) : [];
+  const lines: string[] = [
+    `Mode: ${mode}.`,
+    `Today's date: ${today}.`,
+    `Spent today: ₹${ctx?.spent_today ?? 0}.`,
+  ];
+  if (mode === "budget") {
+    lines.push(
+      `Remaining monthly balance: ₹${ctx?.remaining ?? "unknown"}.`,
+      `Daily limit: ${ctx?.daily_limit ? "₹" + ctx.daily_limit : "none"}.`,
+    );
+  }
+  if (txns.length) {
+    lines.push(
+      `Recent transactions (date | amount | category | item), most recent first:`,
+      ...txns.map(
+        (t: any) => `- ${t.date} | ₹${t.amount} | ${t.category} | ${t.item ?? ""}`,
+      ),
+    );
+  }
+  return { mode, text: lines.join("\n") };
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -36,7 +72,8 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
 
-    const userContext = `Context — remaining balance: ₹${context?.remaining ?? "unknown"}, daily limit: ${context?.daily_limit ? "₹" + context.daily_limit : "none"}, spent today: ₹${context?.spent_today ?? 0}.`;
+    const built = buildContext(context);
+    const systemPrompt = built.mode === "tracking" ? TRACKING_PROMPT : BUDGET_PROMPT;
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -47,8 +84,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "system", content: userContext },
+          { role: "system", content: systemPrompt },
+          { role: "system", content: built.text },
           { role: "user", content: message },
         ],
         tools: [{

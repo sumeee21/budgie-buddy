@@ -21,6 +21,7 @@ export type Database = {
           daily_limit: number | null
           display_name: string | null
           id: string
+          mode: string
           total_budget: number
           updated_at: string
           user_id: string
@@ -31,6 +32,7 @@ export type Database = {
           daily_limit?: number | null
           display_name?: string | null
           id?: string
+          mode?: string
           total_budget?: number
           updated_at?: string
           user_id: string
@@ -41,6 +43,7 @@ export type Database = {
           daily_limit?: number | null
           display_name?: string | null
           id?: string
+          mode?: string
           total_budget?: number
           updated_at?: string
           user_id?: string

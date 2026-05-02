@@ -9,6 +9,7 @@ export type Profile = {
   display_name: string | null;
   total_budget: number;
   daily_limit: number | null;
+  mode: "budget" | "tracking";
 };
 
 export type Transaction = {
