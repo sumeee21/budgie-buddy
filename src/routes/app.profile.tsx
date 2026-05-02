@@ -35,11 +35,10 @@ function ProfilePage() {
   async function switchMode(target: "budget" | "tracking") {
     if (!user || !profile || profile.mode === target) return;
     setSwitching(true);
-    const updates: Record<string, unknown> = { mode: target };
-    if (target === "tracking") {
-      updates.total_budget = 0;
-      updates.daily_limit = null;
-    }
+    const updates =
+      target === "tracking"
+        ? { mode: "tracking", total_budget: 0, daily_limit: null }
+        : { mode: "budget" };
     const { error } = await supabase.from("profiles").update(updates).eq("user_id", user.id);
     setSwitching(false);
     if (error) return toast.error(error.message);
