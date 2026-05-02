@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, Wallet, LineChart, ArrowLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/onboarding")({
   component: Onboarding,
@@ -15,9 +16,29 @@ export const Route = createFileRoute("/app/onboarding")({
 function Onboarding() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [step, setStep] = useState<"mode" | "budget">("mode");
+  const [mode, setMode] = useState<"budget" | "tracking" | null>(null);
   const [budget, setBudget] = useState("");
   const [daily, setDaily] = useState("");
   const [loading, setLoading] = useState(false);
+
+  async function pickMode(m: "budget" | "tracking") {
+    setMode(m);
+    if (m === "tracking") {
+      if (!user) return;
+      setLoading(true);
+      const { error } = await supabase
+        .from("profiles")
+        .update({ mode: "tracking", total_budget: 0, daily_limit: null })
+        .eq("user_id", user.id);
+      setLoading(false);
+      if (error) return toast.error(error.message);
+      toast.success("Tracking mode on! Just log expenses and I'll analyze them 📊");
+      navigate({ to: "/app" });
+      return;
+    }
+    setStep("budget");
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -31,6 +52,7 @@ function Onboarding() {
     const { error } = await supabase
       .from("profiles")
       .update({
+        mode: "budget",
         total_budget: total,
         daily_limit: daily ? Number(daily) : null,
       })
@@ -50,6 +72,75 @@ function Onboarding() {
       </div>
       <div className="w-full max-w-md">
         <div className="rounded-3xl border border-border bg-card p-8 shadow-card">
+          {step === "mode" && (
+            <>
+              <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
+                <Sparkles className="h-3.5 w-3.5 text-primary" /> Choose your mode
+              </div>
+              <h1 className="mt-4 font-display text-2xl font-bold">How do you want to use Paisa?</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Pick the mode that fits you. You can switch anytime in settings.
+              </p>
+
+              <div className="mt-6 space-y-3">
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => pickMode("budget")}
+                  className={cn(
+                    "group flex w-full items-start gap-4 rounded-2xl border-2 border-border bg-background p-4 text-left transition hover:border-primary hover:bg-primary/5",
+                    mode === "budget" && "border-primary bg-primary/5"
+                  )}
+                >
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-blaze text-primary-foreground">
+                    <Wallet className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-display text-base font-semibold">Budget Mode</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Set monthly pocket money. Track savings, daily limits, and remaining balance. Best for students.
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => pickMode("tracking")}
+                  className={cn(
+                    "group flex w-full items-start gap-4 rounded-2xl border-2 border-border bg-background p-4 text-left transition hover:border-primary hover:bg-primary/5",
+                    mode === "tracking" && "border-primary bg-primary/5"
+                  )}
+                >
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-warm text-primary-foreground">
+                    <LineChart className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-display text-base font-semibold">Expense Tracking Mode</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      No budget. Just record daily spending and analyze trends with date-range insights and charts.
+                    </p>
+                  </div>
+                </button>
+
+                {loading && (
+                  <div className="flex items-center justify-center pt-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {step === "budget" && (
+            <>
+              <button
+                type="button"
+                onClick={() => setStep("mode")}
+                className="mb-3 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" /> Back
+              </button>
           <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
             <Sparkles className="h-3.5 w-3.5 text-primary" /> Quick setup
           </div>
@@ -109,6 +200,8 @@ function Onboarding() {
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Let's go →"}
             </Button>
           </form>
+            </>
+          )}
         </div>
       </div>
     </div>
