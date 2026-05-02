@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useFinanceData } from "@/hooks/useFinanceData";
 import { BottomNav } from "@/components/BottomNav";
-import { CATEGORY_META, formatINR, type Category } from "@/lib/finance";
+import { CATEGORY_META, formatINR, localDateKey, type Category } from "@/lib/finance";
 import { Loader2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -33,7 +33,7 @@ function HistoryPage() {
   const groups = useMemo(() => {
     const map = new Map<string, { label: string; items: typeof txns; total: number }>();
     for (const t of txns) {
-      const key = t.created_at.slice(0, 10);
+      const key = localDateKey(t.created_at);
       const g = map.get(key) ?? { label: dayLabel(t.created_at), items: [], total: 0 };
       g.items.push(t);
       g.total += Number(t.amount);
