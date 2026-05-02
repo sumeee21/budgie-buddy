@@ -26,6 +26,18 @@ export function formatINR(n: number): string {
   return "₹" + Math.round(n).toLocaleString("en-IN");
 }
 
+/**
+ * Returns YYYY-MM-DD in the user's LOCAL timezone.
+ * Using toISOString() is wrong because it converts to UTC and can shift the day.
+ */
+export function localDateKey(d: Date | string = new Date()): string {
+  const date = typeof d === "string" ? new Date(d) : d;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export function todayKey(d: Date = new Date()): string {
-  return d.toISOString().slice(0, 10);
+  return localDateKey(d);
 }

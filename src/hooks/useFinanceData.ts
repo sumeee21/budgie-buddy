@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { localDateKey } from "@/lib/finance";
 
 export type Profile = {
   id: string;
@@ -76,9 +77,9 @@ export function useFinanceData() {
 
   const spent = txns.reduce((s, t) => s + Number(t.amount), 0);
   const remaining = (profile?.total_budget ?? 0) - spent;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDateKey();
   const spentToday = txns
-    .filter((t) => t.created_at.slice(0, 10) === today)
+    .filter((t) => localDateKey(t.created_at) === today)
     .reduce((s, t) => s + Number(t.amount), 0);
 
   return { profile, txns, loading, refresh, spent, remaining, spentToday };

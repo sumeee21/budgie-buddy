@@ -1,5 +1,5 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { CATEGORY_META, formatINR, type Category } from "@/lib/finance";
+import { CATEGORY_META, formatINR, localDateKey, type Category } from "@/lib/finance";
 import type { Transaction } from "@/hooks/useFinanceData";
 
 type Props = {
@@ -12,8 +12,8 @@ type Props = {
 
 export function DateExpensesSheet({ open, onOpenChange, date, txns, dailyLimit }: Props) {
   if (!date) return null;
-  const key = date.toISOString().slice(0, 10);
-  const dayTxns = txns.filter((t) => t.created_at.slice(0, 10) === key);
+  const key = localDateKey(date);
+  const dayTxns = txns.filter((t) => localDateKey(t.created_at) === key);
   const total = dayTxns.reduce((s, t) => s + Number(t.amount), 0);
   const overLimit = dailyLimit ? total > dailyLimit : false;
 
