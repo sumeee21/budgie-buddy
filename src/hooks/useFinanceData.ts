@@ -18,6 +18,7 @@ export type Transaction = {
   category: string;
   item: string | null;
   created_at: string;
+  mode: "budget" | "tracking";
 };
 
 export function useFinanceData() {
@@ -36,16 +37,21 @@ export function useFinanceData() {
 
     setLoading(true);
 
-    const [{ data: p }, { data: t }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase
-        .from("transactions")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(200),
-    ]);
+    const { data: p } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
     if (p) setProfile(p as any);
+
+    const mode = (p as any)?.mode ?? "budget";
+    const { data: t } = await supabase
+      .from("transactions")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("mode", mode)
+      .order("created_at", { ascending: false })
+      .limit(200);
     if (t) setTxns(t as any);
     setLoading(false);
   }, [user]);
