@@ -38,6 +38,17 @@ function Dashboard() {
     year: "numeric",
   });
 
+  const txnContext = useMemo(
+    () =>
+      txns.slice(0, 200).map((t) => ({
+        date: localDateKey(t.created_at),
+        amount: Number(t.amount),
+        category: t.category,
+        item: t.item,
+      })),
+    [txns]
+  );
+
   if (loading || !profile) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -53,16 +64,6 @@ function Dashboard() {
   const overDaily = dailyLimit ? spentToday > dailyLimit : false;
   const recent = txns.slice(0, 5);
   const isTracking = profile.mode === "tracking";
-  const txnContext = useMemo(
-    () =>
-      txns.slice(0, 200).map((t) => ({
-        date: localDateKey(t.created_at),
-        amount: Number(t.amount),
-        category: t.category,
-        item: t.item,
-      })),
-    [txns]
-  );
 
   return (
     <div className="min-h-screen pb-32">
