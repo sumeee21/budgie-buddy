@@ -139,7 +139,7 @@ function Dashboard() {
         </div>
       </div>
 
-      <div className="mx-auto -mt-8 max-w-lg space-y-4 px-4 pt-2">
+      <div className="mx-auto mt-4 max-w-lg space-y-4 px-4">
         {/* Tracking mode: today's spend simple counter + insights link */}
         {isTracking && (
           <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
