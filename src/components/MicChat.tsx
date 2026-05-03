@@ -77,6 +77,7 @@ export function MicChat({ context, onLogged, variant = "full" }: Props) {
           category: e.category,
           item: e.item ?? null,
           raw_input: trimmed,
+          mode: context.mode ?? "budget",
         }));
         const { error: insErr } = await supabase.from("transactions").insert(rows);
         if (insErr) throw insErr;
