@@ -1,0 +1,2 @@
+ALTER TABLE public.transactions ADD COLUMN mode text NOT NULL DEFAULT 'budget' CHECK (mode IN ('budget','tracking'));
+CREATE INDEX IF NOT EXISTS idx_transactions_user_mode ON public.transactions(user_id, mode, created_at DESC);
